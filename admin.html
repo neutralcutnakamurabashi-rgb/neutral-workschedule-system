@@ -203,6 +203,30 @@
     .cal-store .store-label { color: #b5624a; font-weight: 700; }
     .cal-cell.all-closed { background: #f5f5f5; }
     .cal-cell.all-closed .cal-store { color: #ccc; }
+
+    /* 店舗別カレンダー */
+    .store-cals { display: flex; flex-direction: column; gap: 24px; }
+    .store-cal-title {
+      background: #b5624a;
+      color: #fff;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+    .staff-name { font-weight: 700; }
+    .staff-iseki  { color: #b5624a; }
+    .staff-yajima { color: #2980b9; }
+    .staff-shimizu{ color: #27ae60; }
+    .staff-miyagishi { color: #8e44ad; }
+    .staff-maruyama { color: #e67e22; }
+    .staff-inaba  { color: #c0392b; }
+    .staff-legend {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      padding: 10px 16px; background: #fdf8f7; font-size: 12px;
+    }
+    .staff-legend span { display: flex; align-items: center; gap: 4px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
   </style>
 </head>
 <body>
@@ -394,6 +418,23 @@
     }
   }
 
+  // スタッフ名→CSSクラス
+  const STAFF_CLASS = {
+    '伊関': 'staff-iseki', '矢島': 'staff-yajima', '清水': 'staff-shimizu',
+    '宮岸': 'staff-miyagishi', '丸山': 'staff-maruyama', '稲葉': 'staff-inaba'
+  };
+  const STAFF_COLOR = {
+    '伊関': '#b5624a', '矢島': '#2980b9', '清水': '#27ae60',
+    '宮岸': '#8e44ad', '丸山': '#e67e22', '稲葉': '#c0392b'
+  };
+
+  function staffSpan(name) {
+    if (!name || name === '定休') return `<span style="color:#ccc;font-size:10px">定休</span>`;
+    if (name === '要確認') return `<span style="color:#e65100;font-weight:700">要確認</span>`;
+    const cls = STAFF_CLASS[name] || '';
+    return `<span class="staff-name ${cls}">${name}</span>`;
+  }
+
   function renderCalendar(data, ym) {
     const [y, m] = ym.split('-').map(Number);
     const firstDow = new Date(y, m-1, 1).getDay();
@@ -402,56 +443,73 @@
     const preview = document.getElementById('calPreview');
     preview.innerHTML = '';
 
-    const cal = document.createElement('div');
-    cal.className = 'cal-preview';
-    cal.innerHTML = `
-      <div class="cal-preview-header">
-        <h2>${y}年${m}月 営業スタッフ</h2>
-        <p>Neutral</p>
-      </div>
-      <div class="cal-grid-wrap">
-        <div class="cal-dow">
-          <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+    const stores = [
+      { key: 'sakuradai',     label: '桜台店',      fields: [{ field: 'sakuradai', label: '' }] },
+      { key: 'nakamurohashi', label: '中村橋店',    fields: [{ field: 'nakamurohashi', label: '' }] },
+      { key: 'fujimidai',     label: '富士見台店',  fields: [{ field: 'fujimidai_early', label: '早' }, { field: 'fujimidai_late', label: '遅' }] },
+    ];
+
+    const wrap = document.createElement('div');
+    wrap.className = 'store-cals';
+
+    // 凡例
+    const legend = document.createElement('div');
+    legend.className = 'staff-legend';
+    Object.entries(STAFF_COLOR).forEach(([name, color]) => {
+      legend.innerHTML += `<span><span class="legend-dot" style="background:${color}"></span>${name}</span>`;
+    });
+
+    stores.forEach(store => {
+      const cal = document.createElement('div');
+      cal.className = 'cal-preview';
+      cal.innerHTML = `
+        <div class="store-cal-title">${y}年${m}月　${store.label}　出勤カレンダー</div>
+        <div class="cal-grid-wrap">
+          <div class="cal-dow">
+            <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+          </div>
+          <div class="cal-cells" id="cells_${store.key}"></div>
         </div>
-        <div class="cal-cells" id="calCells"></div>
-      </div>
-    `;
-    preview.appendChild(cal);
+      `;
+      wrap.appendChild(cal);
 
-    const cells = cal.querySelector('#calCells');
+      const cells = cal.querySelector(`#cells_${store.key}`);
 
-    // 空白セル
-    for (let i = 0; i < firstDow; i++) {
-      const empty = document.createElement('div');
-      empty.className = 'cal-cell empty';
-      cells.appendChild(empty);
-    }
-
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dow = new Date(y, m-1, d).getDay();
-      const shift = data.shifts.find(s => s.day === d);
-      const cell = document.createElement('div');
-      cell.className = `cal-cell ${dow===0?'sun':dow===6?'sat':''}`;
-
-      let storeHTML = '';
-      if (shift) {
-        const allClosed = [shift.sakuradai, shift.nakamurohashi, shift.fujimidai_early, shift.fujimidai_late].every(v => v === '定休');
-        if (allClosed) {
-          cell.classList.add('all-closed');
-          storeHTML = '<div class="cal-store"><span style="color:#ccc">定休</span></div>';
-        } else {
-          storeHTML = '<div class="cal-store">';
-          if (shift.sakuradai !== '定休') storeHTML += `<span><span class="store-label">桜</span> ${shift.sakuradai}</span>`;
-          if (shift.nakamurohashi !== '定休') storeHTML += `<span><span class="store-label">中</span> ${shift.nakamurohashi}</span>`;
-          if (shift.fujimidai_early !== '定休') storeHTML += `<span><span class="store-label">富早</span> ${shift.fujimidai_early}</span>`;
-          if (shift.fujimidai_late !== '定休') storeHTML += `<span><span class="store-label">富遅</span> ${shift.fujimidai_late}</span>`;
-          storeHTML += '</div>';
-        }
+      for (let i = 0; i < firstDow; i++) {
+        const empty = document.createElement('div');
+        empty.className = 'cal-cell empty';
+        cells.appendChild(empty);
       }
 
-      cell.innerHTML = `<div class="cal-day-num">${d}</div>${storeHTML}`;
-      cells.appendChild(cell);
-    }
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dow = new Date(y, m-1, d).getDay();
+        const shift = data.shifts.find(s => s.day === d);
+        const cell = document.createElement('div');
+        cell.className = `cal-cell ${dow===0?'sun':dow===6?'sat':''}`;
+
+        let content = '';
+        if (shift) {
+          const isClosed = store.fields.every(f => shift[f.field] === '定休');
+          if (isClosed) {
+            cell.classList.add('all-closed');
+            content = '<div class="cal-store"><span style="color:#ccc;font-size:10px">定休</span></div>';
+          } else {
+            content = '<div class="cal-store">';
+            store.fields.forEach(f => {
+              const val = shift[f.field];
+              content += `<span>${f.label ? `<b style="color:#b5624a;font-size:9px">${f.label} </b>` : ''}${staffSpan(val)}</span>`;
+            });
+            content += '</div>';
+          }
+        }
+
+        cell.innerHTML = `<div class="cal-day-num">${d}</div>${content}`;
+        cells.appendChild(cell);
+      }
+    });
+
+    wrap.appendChild(legend);
+    preview.appendChild(wrap);
   }
 
   // HTMLとして保存
