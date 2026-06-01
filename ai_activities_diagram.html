@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI活用について</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #0f0f1a;
+      color: #f0f0f0;
+      min-height: 100vh;
+    }
+
+    /* ─── HEADER ─── */
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 48px 40px 40px;
+      text-align: center;
+      border-bottom: 2px solid #c9a84c;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 60%);
+    }
+
+    .header-tag {
+      display: inline-block;
+      background: rgba(201,168,76,0.15);
+      border: 1px solid #c9a84c;
+      color: #c9a84c;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      padding: 6px 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 {
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, #c9a84c, #f0d080, #c9a84c);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 12px;
+    }
+
+    .header p {
+      font-size: 16px;
+      color: rgba(255,255,255,0.6);
+      letter-spacing: 2px;
+    }
+
+    /* ─── MAIN CONTAINER ─── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 32px;
+    }
+
+    /* ─── SECTION ─── */
+    .section {
+      margin-bottom: 56px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .section-number {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #c9a84c, #f0d080);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 900;
+      color: #0f0f1a;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #f0f0f0;
+      letter-spacing: 2px;
+    }
+
+    .section-title span {
+      color: #c9a84c;
+    }
+
+    /* ─── CARDS GRID ─── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: linear-gradient(145deg, #1e1e35, #16213e);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 16px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #c9a84c, #f0d080, #c9a84c);
+    }
+
+    .card-icon {
+      font-size: 36px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #c9a84c;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+    }
+
+    .card-body {
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.8;
+    }
+
+    .card-flow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+
+    .flow-item {
+      background: rgba(201,168,76,0.1);
+      border: 1px solid rgba(201,168,76,0.3);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: #c9a84c;
+      font-weight: 500;
+    }
+
+    .flow-arrow {
+      color: #c9a84c;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* ─── SNS FLOW SECTION ─── */
+    .flow-section {
+      background: linear-gradient(145deg, #1e1e35, #16213e);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 20px;
+      padding: 36px 32px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .flow-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #c9a84c, #f0d080, #c9a84c);
+    }
+
+    .flow-diagram {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+      margin-top: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-box {
+      background: rgba(201,168,76,0.08);
+      border: 2px solid rgba(201,168,76,0.5);
+      border-radius: 12px;
+      padding: 20px 22px;
+      text-align: center;
+      min-width: 160px;
+    }
+
+    .flow-box.output {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.2);
+      min-width: 220px;
+    }
+
+    .flow-box-icon {
+      font-size: 28px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .flow-box-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #c9a84c;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .flow-box-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+    }
+
+    .big-arrow {
+      font-size: 28px;
+      color: #c9a84c;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .ai-box {
+      background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(240,208,128,0.08));
+      border: 2px solid #c9a84c;
+      border-radius: 12px;
+      padding: 20px 22px;
+      text-align: center;
+      min-width: 160px;
+    }
+
+    .ai-box-icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .ai-box-label {
+      font-size: 14px;
+      font-weight: 900;
+      color: #f0d080;
+      letter-spacing: 2px;
+    }
+
+    /* ─── OUTPUT LIST ─── */
+    .output-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .output-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+
+    .output-item-icon {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .output-item-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      font-weight: 500;
+    }
+
+    /* ─── BONUS SECTION ─── */
+    .bonus-card {
+      background: linear-gradient(145deg, #1e1e35, #16213e);
+      border: 1px solid rgba(201,168,76,0.25);
+      border-radius: 20px;
+      padding: 36px 32px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .bonus-side {
+      text-align: center;
+    }
+
+    .bonus-label {
+      display: inline-block;
+      font-size: 11px;
+      letter-spacing: 3px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .bonus-label.before {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .bonus-label.after {
+      background: rgba(201,168,76,0.15);
+      color: #c9a84c;
+      border: 1px solid rgba(201,168,76,0.4);
+    }
+
+    .bonus-icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .bonus-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.6;
+    }
+
+    .bonus-sub {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 6px;
+    }
+
+    .bonus-arrow {
+      font-size: 36px;
+      color: #c9a84c;
+      text-align: center;
+    }
+
+    /* ─── SURPRISE SECTION ─── */
+    .surprise-wrapper {
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      border: 2px solid #c9a84c;
+      border-radius: 24px;
+      padding: 40px 36px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .surprise-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .surprise-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #c9a84c, #f0d080);
+      color: #0f0f1a;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      padding: 6px 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .surprise-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #f0d080;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+    }
+
+    .surprise-desc {
+      font-size: 15px;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.9;
+      margin-bottom: 32px;
+    }
+
+    .surprise-flow {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0;
+      align-items: center;
+    }
+
+    .surprise-step {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: 14px;
+      padding: 22px 16px;
+      text-align: center;
+    }
+
+    .surprise-step.highlight {
+      background: rgba(201,168,76,0.1);
+      border-color: rgba(201,168,76,0.6);
+    }
+
+    .surprise-step-icon {
+      font-size: 32px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .surprise-step-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #c9a84c;
+      margin-bottom: 6px;
+    }
+
+    .surprise-step-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .surprise-arrow {
+      text-align: center;
+      font-size: 22px;
+      color: #c9a84c;
+      padding: 0 8px;
+    }
+
+    .surprise-note {
+      margin-top: 28px;
+      background: rgba(201,168,76,0.06);
+      border-left: 3px solid #c9a84c;
+      border-radius: 0 10px 10px 0;
+      padding: 14px 20px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.8;
+    }
+
+    .surprise-note strong {
+      color: #f0d080;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid rgba(201,168,76,0.2);
+      margin-top: 16px;
+    }
+
+    .footer p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 2px;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 700px) {
+      .header h1 { font-size: 30px; }
+      .flow-diagram { flex-direction: column; align-items: center; }
+      .big-arrow { transform: rotate(90deg); margin: 0; padding: 8px 0; }
+      .bonus-card { grid-template-columns: 1fr; }
+      .bonus-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── HEADER ─── -->
+  <div class="header">
+    <div class="header-tag">2026 WORKSHOP MATERIAL</div>
+    <h1>AI 活 用 に つ い て</h1>
+    <p>サロンワークにおける AI 活用事例と SNS への応用</p>
+  </div>
+
+  <div class="container">
+
+    <!-- ─── SECTION 1 ─── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">1</div>
+        <div class="section-title">現在の<span>活用内容</span></div>
+      </div>
+
+      <div class="cards-grid">
+
+        <div class="card">
+          <span class="card-icon">🎥</span>
+          <div class="card-title">360° 回転動画の生成</div>
+          <div class="card-body">
+            顔出しNGのお客様の<br>横・後ろからの写真のみから、<br>一周ぐるりと回るカメラワークの動画を生成
+          </div>
+          <div class="card-flow">
+            <span class="flow-item">横からの写真</span>
+            <span class="flow-arrow">＋</span>
+            <span class="flow-item">後ろからの写真</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item">360°動画</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card-icon">😷</span>
+          <div class="card-title">顔出しNG 対応処理</div>
+          <div class="card-body">
+            正面画像に対して<br>マスクを装着した状態に変更、<br>または顔をAIで別の顔に変更
+          </div>
+          <div class="card-flow">
+            <span class="flow-item">正面写真</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item">マスク装着</span>
+            <span class="flow-arrow">or</span>
+            <span class="flow-item">顔変更</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card-icon">🧍</span>
+          <div class="card-title">姿勢・シーン変換</div>
+          <div class="card-body">
+            店内の椅子に座った写真をもとに、<br>店頭で立った状態の写真に<br>AIで合成・変換
+          </div>
+          <div class="card-flow">
+            <span class="flow-item">座り姿（店内）</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item">立ち姿（店頭）</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card-icon">🏪</span>
+          <div class="card-title">背景・店舗の合成</div>
+          <div class="card-body">
+            別の店舗・店内の背景と<br>合成することで、<br>どこの店舗でも撮影したような写真に変換
+          </div>
+          <div class="card-flow">
+            <span class="flow-item">元写真</span>
+            <span class="flow-arrow">＋</span>
+            <span class="flow-item">別店舗背景</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item">合成写真</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="card-icon">🎬</span>
+          <div class="card-title">キャラクター動画の作成</div>
+          <div class="card-body">
+            AIを活用してオリジナルの<br>キャラクター動画を制作。<br>SNSや販促コンテンツとして活用可能
+          </div>
+          <div class="card-flow">
+            <span class="flow-item">キャラクター設定</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-item">AI動画生成</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ─── SECTION 2 ─── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <div class="section-title">SNS等への<span>AI活用フロー</span></div>
+      </div>
+
+      <div class="flow-section">
+        <div class="flow-diagram">
+
+          <!-- INPUT -->
+          <div class="flow-box">
+            <span class="flow-box-icon">📸</span>
+            <div class="flow-box-label">INPUT</div>
+            <div class="flow-box-desc">
+              セット面に座った<br>お客様の写真<br>（横・後ろのみ）
+            </div>
+          </div>
+
+          <div class="big-arrow">→</div>
+
+          <!-- AI -->
+          <div class="ai-box">
+            <span class="ai-box-icon">🤖</span>
+            <div class="ai-box-label">A I 処 理</div>
+          </div>
+
+          <div class="big-arrow">→</div>
+
+          <!-- OUTPUT -->
+          <div class="flow-box output" style="text-align:left; padding: 20px 20px;">
+            <div class="flow-box-label" style="margin-bottom:14px;">OUTPUT（SNS投稿コンテンツ）</div>
+            <div class="output-list">
+              <div class="output-item">
+                <span class="output-item-icon">🎞️</span>
+                <span class="output-item-text">3枚の写真をつなげて動画化</span>
+              </div>
+              <div class="output-item">
+                <span class="output-item-icon">😷</span>
+                <span class="output-item-text">マスク装着で正面から見せる</span>
+              </div>
+              <div class="output-item">
+                <span class="output-item-icon">🏪</span>
+                <span class="output-item-text">店頭に立った姿の写真に変換</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION 3 ─── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">3</div>
+        <div class="section-title">フリー素材の<span>オリジナル化</span></div>
+      </div>
+
+      <div class="bonus-card">
+        <div class="bonus-side">
+          <span class="bonus-label before">BEFORE</span>
+          <span class="bonus-icon">📄</span>
+          <div class="bonus-text">フリー素材の<br>クオリティの高い紙型</div>
+          <div class="bonus-sub">汎用的・一般的なデザイン</div>
+        </div>
+
+        <div class="bonus-arrow">
+          <div style="text-align:center;">
+            <div style="font-size:14px; color:#c9a84c; letter-spacing:2px; margin-bottom:8px; font-weight:700;">AI変換</div>
+            <div>→</div>
+          </div>
+        </div>
+
+        <div class="bonus-side">
+          <span class="bonus-label after">AFTER</span>
+          <span class="bonus-icon">✨</span>
+          <div class="bonus-text">店舗の世界観に<br>合わせた背景に変換</div>
+          <div class="bonus-sub">完全オリジナルのデザイン素材</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION 4 (SURPRISE) ─── -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-number">4</div>
+        <div class="section-title">各店舗への<span>サプライズ発表</span></div>
+      </div>
+
+      <div class="surprise-wrapper">
+        <div class="surprise-badge">🎁 SURPRISE REVEAL</div>
+        <div class="surprise-title">参加店舗のホームページ写真をもとに<br>AI 動画を事前制作・当日発表</div>
+        <div class="surprise-desc">
+          講習会に参加する各店舗のホームページに掲載されている写真を素材として、<br>
+          高クオリティなAI動画を事前に制作。当日その場でサプライズとして発表します。
+        </div>
+
+        <div class="surprise-flow">
+
+          <div class="surprise-step">
+            <span class="surprise-step-icon">🌐</span>
+            <div class="surprise-step-label">STEP 1</div>
+            <div class="surprise-step-text">各店舗の<br>ホームページ写真を収集</div>
+          </div>
+
+          <div class="surprise-arrow">→</div>
+
+          <div class="surprise-step">
+            <span class="surprise-step-icon">🤖</span>
+            <div class="surprise-step-label">STEP 2</div>
+            <div class="surprise-step-text">AIで事前に<br>高品質動画を制作</div>
+          </div>
+
+          <div class="surprise-arrow">→</div>
+
+          <div class="surprise-step highlight">
+            <span class="surprise-step-icon">🎬</span>
+            <div class="surprise-step-label">STEP 3</div>
+            <div class="surprise-step-text">講習会当日に<br>サプライズ上映・発表</div>
+          </div>
+
+          <div class="surprise-arrow">→</div>
+
+          <div class="surprise-step">
+            <span class="surprise-step-icon">💡</span>
+            <div class="surprise-step-label">STEP 4</div>
+            <div class="surprise-step-text">「自分の店でも<br>できる」を体感</div>
+          </div>
+
+        </div>
+
+        <div class="surprise-note">
+          <strong>ポイント：</strong>参加者が「これは自分のお店のホームページの写真だ」と気づいた瞬間に、AIの可能性をリアルに実感できる体験型デモンストレーションです。<br>
+          実際に完成した動画を見せることで、<strong>「自分たちのサロンでも今すぐ活用できる」</strong>という具体的なイメージを持って帰っていただけます。
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ─── FOOTER ─── -->
+  <div class="footer">
+    <p>AI UTILIZATION WORKSHOP  ·  April 2026</p>
+  </div>
+
+</body>
+</html>
