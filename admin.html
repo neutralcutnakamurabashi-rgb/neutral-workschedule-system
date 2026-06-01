@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>シフト管理｜管理者画面</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: #f5f4f2;
+      color: #333;
+      min-height: 100vh;
+    }
+    header {
+      background: #b5624a;
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    header h1 { font-size: 18px; font-weight: 700; }
+    header span { font-size: 12px; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 20px; }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card h2 { font-size: 14px; font-weight: 700; color: #666; margin-bottom: 14px; }
+
+    .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+    select, input {
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 15px;
+      background: #fff;
+      color: #333;
+    }
+    select:focus, input:focus { outline: none; border-color: #b5624a; }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary { background: #b5624a; color: #fff; }
+    .btn-primary:hover { background: #9a4f3a; }
+    .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-secondary { background: #f0e0db; color: #b5624a; }
+    .btn-secondary:hover { background: #e8d0c8; }
+
+    .staff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+    .staff-card {
+      border: 1.5px solid #eee;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .staff-card .name { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .staff-card .days { font-size: 12px; color: #888; line-height: 1.6; }
+    .staff-card .count { font-size: 11px; color: #b5624a; font-weight: 700; margin-top: 4px; }
+
+    .result-area {
+      background: #fafafa;
+      border: 1.5px solid #eee;
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 120px;
+      font-size: 13px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+    .result-area.loading { color: #aaa; font-family: inherit; font-size: 14px; }
+
+    .shift-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .shift-table th {
+      background: #b5624a;
+      color: #fff;
+      padding: 8px 6px;
+      text-align: center;
+    }
+    .shift-table td {
+      padding: 7px 6px;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+    .shift-table tr:nth-child(even) td { background: #fdf8f7; }
+    .shift-table .sun { color: #c0392b; }
+    .shift-table .sat { color: #2980b9; }
+    .shift-table .holiday { background: #fef0ed !important; }
+
+    .raw-output {
+      background: #fafafa;
+      border: 1.5px solid #eee;
+      border-radius: 8px;
+      padding: 16px;
+      font-size: 13px;
+      line-height: 1.8;
+      white-space: pre-wrap;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #333;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 24px;
+      font-size: 14px;
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.error { background: #c62828; }
+    .toast.success { background: #2e7d32; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-ok { background: #e8f5e9; color: #2e7d32; }
+    .badge-warn { background: #fff3e0; color: #e65100; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>シフト管理</h1>
+  <span>管理者専用</span>
+</header>
+
+<div class="container">
+
+  <!-- Step 1: 対象月選択 -->
+  <div class="card">
+    <h2>STEP 1｜対象月を選択</h2>
+    <div class="row">
+      <select id="yearMonth"></select>
+      <button class="btn btn-primary" id="loadBtn">申請データを読み込む</button>
+    </div>
+  </div>
+
+  <!-- Step 2: 申請状況 -->
+  <div class="card" id="dataCard" style="display:none">
+    <h2>STEP 2｜申請状況</h2>
+    <div class="staff-grid" id="staffGrid"></div>
+  </div>
+
+  <!-- Step 3: シフト生成 -->
+  <div class="card" id="generateCard" style="display:none">
+    <h2>STEP 3｜AIでシフトを生成</h2>
+    <div class="row" style="margin-bottom:14px">
+      <button class="btn btn-primary" id="generateBtn">シフト案を生成する</button>
+      <span style="font-size:12px;color:#999">※ Claude AIが叩き台を作成します（数秒かかります）</span>
+    </div>
+    <div class="result-area loading" id="resultArea">生成ボタンを押すとシフト案が表示されます</div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== 設定 =====
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwanckQvkc2naErY_aF4Py9C3m_-eKRqawP1Q1TF6L1czmzEvwkAksjNO0RZXHkQMYZ/exec';
+
+  // ===== 月セレクタ初期化 =====
+  const sel = document.getElementById('yearMonth');
+  const now = new Date();
+  for (let i = 0; i < 6; i++) {
+    let y = now.getFullYear();
+    let m = now.getMonth() + 1 + i;
+    if (m > 12) { m -= 12; y++; }
+    const val = `${y}-${String(m).padStart(2,'0')}`;
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = `${y}年${m}月`;
+    sel.appendChild(opt);
+  }
+
+  // ===== データ読み込み =====
+  document.getElementById('loadBtn').addEventListener('click', async () => {
+    const ym = sel.value;
+    const btn = document.getElementById('loadBtn');
+    btn.disabled = true;
+    btn.textContent = '読み込み中...';
+
+    try {
+      const res = await fetch(`${GAS_URL}?action=getData&yearMonth=${ym}`);
+      const json = await res.json();
+
+      if (json.status !== 'ok') throw new Error(json.message);
+
+      renderStaffGrid(json.data, ym);
+      document.getElementById('dataCard').style.display = 'block';
+      document.getElementById('generateCard').style.display = 'block';
+      document.getElementById('resultArea').textContent = '生成ボタンを押すとシフト案が表示されます';
+      document.getElementById('resultArea').className = 'result-area loading';
+      showToast('データを読み込みました', 'success');
+    } catch (e) {
+      showToast('読み込みに失敗しました: ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '申請データを読み込む';
+    }
+  });
+
+  function renderStaffGrid(data, ym) {
+    const [y, m] = ym.split('-').map(Number);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const grid = document.getElementById('staffGrid');
+    grid.innerHTML = '';
+
+    const staff = ['伊関', '矢島', '清水', '宮岸', '丸山', '稲葉'];
+    staff.forEach(name => {
+      const entry = data.find(d => d.name === name);
+      const card = document.createElement('div');
+      card.className = 'staff-card';
+
+      if (entry) {
+        const days = entry.days.split(',').map(Number).sort((a,b)=>a-b);
+        card.innerHTML = `
+          <div class="name">${name} <span class="status-badge badge-ok">申請済</span></div>
+          <div class="days">${days.join('日、')}日</div>
+          <div class="count">計 ${days.length}日 / ${daysInMonth}日中</div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="name">${name} <span class="status-badge badge-warn">未申請</span></div>
+          <div class="days" style="color:#ccc">申請なし</div>
+        `;
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // ===== シフト生成 =====
+  document.getElementById('generateBtn').addEventListener('click', async () => {
+    const ym = sel.value;
+    const btn = document.getElementById('generateBtn');
+    const area = document.getElementById('resultArea');
+
+    btn.disabled = true;
+    btn.textContent = '生成中...';
+    area.className = 'result-area loading';
+    area.textContent = 'AIがシフトを考えています...\n（通常10〜20秒かかります）';
+
+    try {
+      const res = await fetch(`${GAS_URL}?action=generateShift&yearMonth=${ym}`);
+      const json = await res.json();
+
+      if (json.status !== 'ok') throw new Error(json.message);
+
+      area.className = 'raw-output';
+      area.textContent = json.shift;
+      showToast('シフト案が生成されました！', 'success');
+    } catch (e) {
+      area.className = 'result-area';
+      area.textContent = 'エラーが発生しました: ' + e.message;
+      showToast('生成に失敗しました', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'シフト案を生成する';
+    }
+  });
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type ? ' ' + type : '');
+    setTimeout(() => { t.className = 'toast'; }, 3000);
+  }
+</script>
+</body>
+</html>
