@@ -28,7 +28,7 @@
     .section { margin-bottom: 24px; }
     label { display: block; font-size: 13px; font-weight: 700; color: #666; margin-bottom: 8px; }
 
-    select, .month-nav {
+    select {
       width: 100%;
       padding: 12px 16px;
       border: 1.5px solid #ddd;
@@ -42,11 +42,14 @@
     select:focus { outline: none; border-color: #b5624a; }
 
     .month-nav {
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 10px 12px;
-      cursor: default;
+      border: 1.5px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
     }
     .month-nav button {
       background: none;
@@ -60,6 +63,95 @@
     .month-nav button:active { background: #f0e0db; }
     .month-nav span { font-size: 16px; font-weight: 700; }
 
+    /* 申請状況カレンダー */
+    .status-card {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      margin-bottom: 8px;
+    }
+    .status-card-header {
+      background: #f0e0db;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #b5624a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-load-status {
+      background: #b5624a;
+      color: #fff;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .status-cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+    .status-cal-dow {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: #fdf8f7;
+    }
+    .status-cal-dow span {
+      text-align: center;
+      padding: 6px 0;
+      font-size: 10px;
+      font-weight: 700;
+      color: #999;
+    }
+    .status-cal-dow span:first-child { color: #c0392b; }
+    .status-cal-dow span:last-child { color: #2980b9; }
+    .status-day {
+      min-height: 48px;
+      padding: 3px;
+      border-right: 1px solid #f5f5f5;
+      border-bottom: 1px solid #f5f5f5;
+      font-size: 9px;
+    }
+    .status-day.empty { background: #fafafa; }
+    .status-day .day-num {
+      font-size: 10px;
+      font-weight: 700;
+      margin-bottom: 2px;
+      color: #555;
+    }
+    .status-day.sun .day-num { color: #c0392b; }
+    .status-day.sat .day-num { color: #2980b9; }
+    .status-day .dot-row { display: flex; flex-wrap: wrap; gap: 1px; }
+    .staff-dot {
+      display: inline-block;
+      font-size: 8px;
+      padding: 1px 3px;
+      border-radius: 3px;
+      color: #fff;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+    .dot-iseki    { background: #b5624a; }
+    .dot-yajima   { background: #2980b9; }
+    .dot-shimizu  { background: #27ae60; }
+    .dot-miyagishi{ background: #8e44ad; }
+    .dot-maruyama { background: #e67e22; }
+    .dot-inaba    { background: #c0392b; }
+
+    .status-legend {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      padding: 8px 12px;
+      background: #fafafa;
+      font-size: 11px;
+    }
+    .status-legend span { display: flex; align-items: center; gap: 3px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+    /* 申請カレンダー */
     .calendar {
       background: #fff;
       border-radius: 12px;
@@ -111,7 +203,6 @@
       font-weight: 700;
       border-radius: 4px;
     }
-    .cal-day.today { font-weight: 700; }
     .cal-day.today:not(.selected)::after {
       content: '';
       display: block;
@@ -194,6 +285,25 @@
     </div>
   </div>
 
+  <!-- 申請状況カレンダー -->
+  <div class="section">
+    <label>みんなの申請状況</label>
+    <div class="status-card">
+      <div class="status-card-header">
+        <span>他のスタッフの申請済み日を確認できます</span>
+        <button class="btn-load-status" id="loadStatusBtn">読み込む</button>
+      </div>
+      <div id="statusCalWrap" style="display:none">
+        <div class="status-cal-dow">
+          <span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span>
+        </div>
+        <div class="status-cal-grid" id="statusCalGrid"></div>
+        <div class="status-legend" id="statusLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 申請カレンダー -->
   <div class="section">
     <label>出勤可能日（タップで選択）</label>
     <div class="calendar">
@@ -213,14 +323,22 @@
 <script>
   // ===== 設定 =====
   const STAFF = ['伊関', '矢島', '清水', '宮岸', '丸山', '稲葉'];
-  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwanckQvkc2naErY_aF4Py9C3m_-eKRqawP1Q1TF6L1czmzEvwkAksjNO0RZXHkQMYZ/exec'; // GASデプロイ後にURLを貼る
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbwanckQvkc2naErY_aF4Py9C3m_-eKRqawP1Q1TF6L1czmzEvwkAksjNO0RZXHkQMYZ/exec';
 
-  // ===== 初期化 =====
+  const STAFF_DOT = {
+    '伊関': 'dot-iseki', '矢島': 'dot-yajima', '清水': 'dot-shimizu',
+    '宮岸': 'dot-miyagishi', '丸山': 'dot-maruyama', '稲葉': 'dot-inaba'
+  };
+  const STAFF_COLOR = {
+    '伊関': '#b5624a', '矢島': '#2980b9', '清水': '#27ae60',
+    '宮岸': '#8e44ad', '丸山': '#e67e22', '稲葉': '#c0392b'
+  };
+
+  // 名前リスト
   const nameSelect = document.getElementById('nameSelect');
   STAFF.forEach(name => {
     const opt = document.createElement('option');
-    opt.value = name;
-    opt.textContent = name;
+    opt.value = name; opt.textContent = name;
     nameSelect.appendChild(opt);
   });
 
@@ -229,15 +347,14 @@
 
   const today = new Date();
   currentYear = today.getFullYear();
-  currentMonth = today.getMonth() + 2; // 翌月をデフォルト
+  currentMonth = today.getMonth() + 2;
   if (currentMonth > 12) { currentMonth = 1; currentYear++; }
 
   function renderCalendar() {
     selectedDays.clear();
     const grid = document.getElementById('calGrid');
     grid.innerHTML = '';
-
-    document.getElementById('monthLabel').textContent = `${currentYear}年 ${currentMonth}月`;
+    document.getElementById('monthLabel').textContent = currentYear + '年 ' + currentMonth + '月';
 
     const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
     const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
@@ -247,14 +364,12 @@
       blank.className = 'cal-day empty';
       grid.appendChild(blank);
     }
-
     for (let d = 1; d <= daysInMonth; d++) {
-      const cell = document.createElement('div');
       const dow = new Date(currentYear, currentMonth - 1, d).getDay();
       let cls = 'cal-day';
       if (dow === 0) cls += ' sun';
       if (dow === 6) cls += ' sat';
-      if (d === today.getDate() && currentMonth === today.getMonth() + 1 && currentYear === today.getFullYear()) cls += ' today';
+      const cell = document.createElement('div');
       cell.className = cls;
       cell.textContent = d;
       cell.dataset.day = d;
@@ -262,6 +377,8 @@
       grid.appendChild(cell);
     }
     updateCount();
+    // 申請状況もリセット
+    document.getElementById('statusCalWrap').style.display = 'none';
   }
 
   function toggleDay(day, cell) {
@@ -276,9 +393,8 @@
   }
 
   function updateCount() {
-    const count = selectedDays.size;
     document.getElementById('selectedCount').innerHTML =
-      `<strong>${count}日</strong> 選択中`;
+      '<strong>' + selectedDays.size + '日</strong> 選択中';
   }
 
   document.getElementById('prevMonth').addEventListener('click', () => {
@@ -294,6 +410,90 @@
 
   renderCalendar();
 
+  // ===== 申請状況読み込み =====
+  document.getElementById('loadStatusBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('loadStatusBtn');
+    btn.textContent = '読込中...';
+    btn.disabled = true;
+
+    const ym = currentYear + '-' + String(currentMonth).padStart(2, '0');
+    try {
+      const res = await fetch(GAS_URL + '?action=getData&yearMonth=' + ym);
+      const json = await res.json();
+      if (json.status !== 'ok') throw new Error(json.message);
+
+      renderStatusCal(json.data, ym);
+      document.getElementById('statusCalWrap').style.display = 'block';
+    } catch(e) {
+      showToast('読み込みに失敗しました', 'error');
+    } finally {
+      btn.textContent = '再読込';
+      btn.disabled = false;
+    }
+  });
+
+  function renderStatusCal(data, ym) {
+    const parts = ym.split('-');
+    const y = parseInt(parts[0]), m = parseInt(parts[1]);
+    const firstDow = new Date(y, m-1, 1).getDay();
+    const daysInMonth = new Date(y, m, 0).getDate();
+
+    // 日付→申請者のマップを作成
+    const dayMap = {};
+    data.forEach(entry => {
+      const myName = nameSelect.value;
+      if (entry.name === myName) return; // 自分は除外
+      String(entry.days).split(',').forEach(d => {
+        const day = parseInt(d);
+        if (!dayMap[day]) dayMap[day] = [];
+        dayMap[day].push(entry.name);
+      });
+    });
+
+    const grid = document.getElementById('statusCalGrid');
+    grid.innerHTML = '';
+
+    for (let i = 0; i < firstDow; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'status-day empty';
+      grid.appendChild(empty);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dow = new Date(y, m-1, d).getDay();
+      const cell = document.createElement('div');
+      cell.className = 'status-day' + (dow===0?' sun':dow===6?' sat':'');
+
+      const numEl = document.createElement('div');
+      numEl.className = 'day-num';
+      numEl.textContent = d;
+      cell.appendChild(numEl);
+
+      const dotRow = document.createElement('div');
+      dotRow.className = 'dot-row';
+      (dayMap[d] || []).forEach(name => {
+        const dot = document.createElement('span');
+        dot.className = 'staff-dot ' + (STAFF_DOT[name] || '');
+        dot.textContent = name[0]; // 名前の最初の1文字
+        dotRow.appendChild(dot);
+      });
+      cell.appendChild(dotRow);
+      grid.appendChild(cell);
+    }
+
+    // 凡例（申請済みの人だけ表示）
+    const legend = document.getElementById('statusLegend');
+    legend.innerHTML = '';
+    const appeared = new Set(data.filter(e => e.name !== nameSelect.value).map(e => e.name));
+    if (appeared.size === 0) {
+      legend.innerHTML = '<span style="color:#aaa">まだ申請がありません</span>';
+    } else {
+      appeared.forEach(name => {
+        legend.innerHTML += '<span><span class="legend-dot" style="background:' + STAFF_COLOR[name] + '"></span>' + name + '</span>';
+      });
+    }
+  }
+
   // ===== 送信 =====
   document.getElementById('submitBtn').addEventListener('click', async () => {
     const name = nameSelect.value;
@@ -301,15 +501,11 @@
     if (selectedDays.size === 0) { showToast('出勤可能日を選択してください', 'error'); return; }
 
     const btn = document.getElementById('submitBtn');
-    btn.disabled = true;
-    btn.textContent = '送信中...';
+    btn.disabled = true; btn.textContent = '送信中...';
 
     const sortedDays = Array.from(selectedDays).sort((a, b) => a - b);
-    const payload = {
-      name,
-      yearMonth: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
-      days: sortedDays.join(',')
-    };
+    const ym = currentYear + '-' + String(currentMonth).padStart(2, '0');
+    const payload = { name, yearMonth: ym, days: sortedDays.join(',') };
 
     try {
       await fetch(GAS_URL, {
@@ -319,15 +515,11 @@
         body: JSON.stringify(payload)
       });
       showToast('申請が完了しました！', 'success');
-      setTimeout(() => {
-        nameSelect.value = '';
-        renderCalendar();
-      }, 1500);
-    } catch (e) {
-      showToast('送信に失敗しました。再度お試しください', 'error');
+      setTimeout(() => { nameSelect.value = ''; renderCalendar(); }, 1500);
+    } catch(e) {
+      showToast('送信に失敗しました', 'error');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '申請する';
+      btn.disabled = false; btn.textContent = '申請する';
     }
   });
 
